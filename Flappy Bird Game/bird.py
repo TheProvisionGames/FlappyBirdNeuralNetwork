@@ -3,35 +3,78 @@ import random
 from defs import *
 from nnet import Nnet
 
-class Bird():
-    def __init__(self, gameDisplay): #initialize bird and its features
+
+class Bird:
+    """ Object to store the information of bird movements
+    """
+
+    def __init__(self, gameDisplay):
+        """ Initialize the bird movement class
+
+        :param gameDisplay: pygame window size
+        """
+
+        # Set the display width and height
         self.gameDisplay = gameDisplay
-        self.state = BIRD_ALIVE #Bird starts alive
-        self.img = pygame.image.load(BIRD_FILENAME) #Load image of bird
-        self.rect = self.img.get_rect() #Is used to find the position of bird
-        self.speed = 0 #start with 0 speed
-        self.time_lived = 0 #start with no time lived (This is for the AI to see if its doing well
-        self.set_position(BIRD_START_X, BIRD_START_Y) #Startposition
+
+        # Set the bird on living
+        self.state = BIRD_ALIVE
+
+        # Load the image of the bird
+        self.img = pygame.image.load(BIRD_FILENAME)
+
+        # Get the position of the bird image
+        self.rect = self.img.get_rect()
+
+        # Set the start speed at 0
+        self.speed = 0
+
+        # Set the start living time at 0 (This is for the AI to see if it works well)
+        self.time_lived = 0
+
+        # Set the startpositiom of the bird
+        self.set_position(BIRD_START_X, BIRD_START_Y)
+
         # Initialize the neural network class with the given parameters
         self.nnet = Nnet(NNET_INPUTS, NNET_HIDDEN, NNET_OUTPUTS)
 
     def set_position(self, x, y):
+        """ Function to get the initially position of the bird
+
+        :param x: integer, x-position of the bird
+        :param y: integer, y-positiion of the bird
+        """
         self.rect.centerx = x
         self.rect.centery = y
 
-    def move(self, dt): #When moving
-        distance = 0 #empty distance
-        new_speed = 0 #empty speed
+    def move(self, dt):
+        """  Function to update the bird movement variables
 
-        distance = (self.speed * dt) + (0.5 * GRAVITY * dt * dt) #s = ut + 0.5at^2
-        new_speed = self.speed + (GRAVITY * dt) #v = u + at
+        :param dt: integer, time movement in milliseconds
+        """
 
-        self.rect.centery += distance #Set the position of the bird on the y axis
-        self.speed = new_speed #Set speed of the bird
+        # When moving, restart the distance and speed
+        distance = 0
+        new_speed = 0
 
-        if self.rect.top < 0: #If the bird goes above the screen
-            self.rect.top = 0 #stay in screen
-            self.speed = 0 #set speed to 0
+        # Calculate the distance with s = ut + 0.5at^2
+        distance = (self.speed * dt) + (0.5 * GRAVITY * dt * dt)
+
+        # Calculate the speed with v = u + at
+        new_speed = self.speed + (GRAVITY * dt)
+
+        # Set the position of the bird on the y axis
+        self.rect.centery += distance
+
+        # Set speed of the bird
+        self.speed = new_speed
+
+        # If the bird goes above the screen
+        if self.rect.top < 0:
+            # Let the bird stay in screen
+            self.rect.top = 0
+            # Set the speed to 0
+            self.speed = 0
 
     def jump(self, pipes):
         """ Function to decide if the bird should flap or not
@@ -51,26 +94,59 @@ class Bird():
             self.speed = BIRD_START_SPEED
 
     def draw(self):
-        self.gameDisplay.blit(self.img, self.rect) #Draw every frame
+        """ Function to visualize the bird
+        """
 
-    def check_status(self, pipes): #Check if the bird still lives
-        if self.rect.bottom > DISPLAY_H: #If it is below the screen
+        # Draw every frame
+        self.gameDisplay.blit(self.img, self.rect)
+
+    def check_status(self, pipes):
+        """ Function to check if the bird is still alive
+
+        :param pipes: list, containing pipe information
+        """
+
+        # If the bird is below the screen
+        if self.rect.bottom > DISPLAY_H:
+            # Set the bird status as dead
             self.state = BIRD_DEAD
-        else: #if not
-            self.check_hits(pipes) #check if it hit with the pipes
+        # If the bird is still at the screen
+        else:
+            # Check if the bird hit a pipe
+            self.check_hits(pipes)
 
     def check_hits(self, pipes):
-        for p in pipes: #for every pipe in the list
-            if p.rect.colliderect(self.rect): #When the bird collides with a pipe
+        """ Function to check if the bird hits a pipe
+
+        :param pipes: list, containing pipe information
+        """
+
+        # For every pipe in the list
+        for p in pipes:
+            # When the bird collides with a pipe
+            if p.rect.colliderect(self.rect):
+                # Set the bird status as dead and stop the loop
                 self.state = BIRD_DEAD
                 break
 
     def update(self, dt, pipes):
-        if self.state == BIRD_ALIVE: #if alive, call all the actions below
+        """ Function to update the position of a living bird
+
+        :param dt: integer, time movement in milliseconds
+        :param pipes: list, containing pipe information
+        """
+
+        # Check if the bird is living
+        if self.state == BIRD_ALIVE:
+            # Update the living time of the bird
             self.time_lived += dt
+            # Update the position of the bird
             self.move(dt)
+            # Draw the bird at the new position
             self.draw()
+            # Check if the bird hits a pipe with the new position
             self.check_status(pipes)
+            # Check if the bird needs to flap
             self.jump(pipes)
 
     def get_inputs(self, pipes):
@@ -110,58 +186,59 @@ class Bird():
         # Return the input values
         return inputs
 
+
 class BirdCollection:
-   """ Object to store information of the bird collection
-   """
-
-   def __init__(self, gameDisplay):
-       """ Initialize the bird collection class
-
-       :param gameDisplay: pygame window size
+    """ Object to store information of the bird collection
        """
 
-       # Set the display width and height
-       self.gameDisplay = gameDisplay
+    def __init__(self, gameDisplay):
+        """ Initialize the bird collection class
 
-       # Store created birds
-       self.birds = []
+        :param gameDisplay: pygame window size
+        """
 
-       # When the class is initialized, an new generation of birds will be created
-       self.create_new_generation()
+        # Set the display width and height
+        self.gameDisplay = gameDisplay
 
-   def create_new_generation(self):
-       """ Function to create a new generation of birds
-       """
+        # Store created birds
+        self.birds = []
 
-       # Start with an empty bird list
-       self.birds = []
+        # When the class is initialized, an new generation of birds will be created
+        self.create_new_generation()
 
-       # Add as many birds as the defined population size
-       for i in range(0, GENERATION_SIZE):
-           # Extend the bird list with the new birds
-           self.birds.append(Bird(self.gameDisplay))
+    def create_new_generation(self):
+        """ Function to create a new generation of birds
+        """
 
-   def update(self, dt, pipes):
-       """
+        # Start with an empty bird list
+        self.birds = []
 
-       :param dt: integer, time movement in milliseconds
-       :param pipes: list, containing pipe information
-       :return:
-           num_alive: integer, number of living birds
-       """
+        # Add as many birds as the defined population size
+        for i in range(0, GENERATION_SIZE):
+            # Extend the bird list with the new birds
+            self.birds.append(Bird(self.gameDisplay))
 
-       # Start the counter of alive birds at 0
-       num_alive = 0
+    def update(self, dt, pipes):
+        """
 
-       # Check every bird in the bird list
-       for b in self.birds:
-           # Update the position of the bird by adding the movement and pipe information
-           b.update(dt, pipes)
-           # Check if the bird is living
-           if b.state == BIRD_ALIVE:
-               # Count the living birds
-               num_alive += 1
+        :param dt: integer, time movement in milliseconds
+        :param pipes: list, containing pipe information
+        :return:
+            num_alive: integer, number of living birds
+        """
 
-       # Return the number of living birds
-       return num_alive
+        # Start the counter of alive birds at 0
+        num_alive = 0
+
+        # Check every bird in the bird list
+        for b in self.birds:
+            # Update the position of the bird by adding the movement and pipe information
+            b.update(dt, pipes)
+            # Check if the bird is living
+            if b.state == BIRD_ALIVE:
+                # Count the living birds
+                num_alive += 1
+
+        # Return the number of living birds
+        return num_alive
 
