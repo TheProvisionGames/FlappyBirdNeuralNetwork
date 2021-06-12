@@ -4,7 +4,7 @@ import pygame
 # Import classes and properties of other Flappy Bird files
 from defs import *
 from pipe import PipeCollection
-from bird import Bird
+from bird import BirdCollection
 
 
 def update_label(data, title, font, x, y, gameDisplay):
@@ -85,7 +85,7 @@ def run_game():
     pipes.create_new_set()
 
     # Initialize the bird class
-    bird = Bird(gameDisplay)
+    birds = BirdCollection(gameDisplay)
 
     # Set a chosen font and size
     label_font = pygame.font.SysFont("monospace", DATA_FONT_SIZE)
