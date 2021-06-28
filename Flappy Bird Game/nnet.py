@@ -6,6 +6,10 @@ import random
 # Import all defined values of Flappy Bird variables.
 from defs import *
 
+# Set a seed to generate always the same flying pattern result
+np.random.seed(16)  # seed 16 will result in a good bird after 8 iterations
+
+
 # Create a neural network class
 class Nnet:
     def __init__(self, num_input, num_hidden, num_output):
