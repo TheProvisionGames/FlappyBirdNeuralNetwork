@@ -1,5 +1,4 @@
 import pygame
-import random
 from defs import *
 from nnet import Nnet
 
@@ -122,9 +121,9 @@ class Bird:
         """
 
         # For every pipe in the list
-        for p in pipes:
+        for pipe in pipes:
             # When the bird collides with a pipe
-            if p.rect.colliderect(self.rect):
+            if pipe.rect.colliderect(self.rect):
                 # Set the bird status as dead and stop the loop
                 self.state = BIRD_DEAD
                 break
@@ -164,18 +163,18 @@ class Bird:
         bottom_y = 0
 
         # Check which pipe (upper or lower) is the closest
-        for p in pipes:
+        for pipe in pipes:
             # If the pipe is an upper pipe, and closer then the closest pipe stored, and at the right side of the pipe image
-            if p.pipe_type == PIPE_UPPER and p.rect.right < closest and p.rect.right > self.rect.left:
+            if pipe.pipe_type == PIPE_UPPER and pipe.rect.right < closest and pipe.rect.right > self.rect.left:
                 # Update the closest pipe position
-                closest = p.rect.right
-                bottom_y = p.rect.bottom
+                closest = pipe.rect.right
+                bottom_y = pipe.rect.bottom
 
         # Get the horizontal distance of the bird to the pipe
         horizontal_distance = closest - self.rect.centerx
 
         # Get the vertical distance of the bird to the pipe
-        vertical_distance = (self.rect.centery) - (bottom_y + PIPE_GAP_SIZE / 2)
+        vertical_distance = self.rect.centery - (bottom_y + PIPE_GAP_SIZE / 2)
 
         # Define the input values
         inputs = [
@@ -231,14 +230,13 @@ class BirdCollection:
         num_alive = 0
 
         # Check every bird in the bird list
-        for b in self.birds:
+        for bird in self.birds:
             # Update the position of the bird by adding the movement and pipe information
-            b.update(dt, pipes)
+            bird.update(dt, pipes)
             # Check if the bird is living
-            if b.state == BIRD_ALIVE:
+            if bird.state == BIRD_ALIVE:
                 # Count the living birds
                 num_alive += 1
 
         # Return the number of living birds
         return num_alive
-
